@@ -1,4 +1,4 @@
-import { MovieAPI } from "/MovieAPI.js";
+import { MovieAPI } from "./MovieAPI.js";
 
 export class Favorites {
   constructor(root) {
@@ -16,14 +16,14 @@ export class Favorites {
 
   async add(title) {
     try {
-      const movieExists = this.entries.find(entry => entry.title === title);
+      const movies = await MovieAPI.search(title);
+      const movie = movies[0]; // Pega o primeiro resultado da pesquisa
+  
+      const movieExists = this.entries.find(entry => entry.id === movie.id);
       if (movieExists) {
         throw new Error("Filme já cadastrado");
       }
-
-      const movies = await MovieAPI.search(title);
-      const movie = movies[0]; // Pega o primeiro resultado da pesquisa
-
+  
       this.entries = [movie, ...this.entries];
       this.update();
       this.save();
@@ -33,7 +33,7 @@ export class Favorites {
   }
 
   delete(movie) {
-    const filteredEntries = this.entries.filter(entry => entry.title !== movie.title);
+    const filteredEntries = this.entries.filter(entry => entry.id !== movie.id);
 
     this.entries = filteredEntries;
     this.update();
@@ -62,29 +62,56 @@ export class FavoritesView extends Favorites {
 
   update() {
     this.removeAllTr();
-
+  
     this.entries.forEach(movie => {
+      if (!movie || !movie.title || !movie.poster) {
+        console.error("Dados do filme incompletos:", movie);
+        return; // Ignora itens com dados inválidos
+      }
+  
       const row = this.createRow();
-      row.querySelector(".movie img").src = movie.poster;
-      row.querySelector(".movie img").alt = `Pôster de ${movie.title}`;
-      row.querySelector(".movie p").textContent = movie.title;
-      row.querySelector(".approval").textContent = movie.vote_average;
+  
+      const movieLink = `https://www.themoviedb.org/movie/${movie.id}`;
+      const imgElement = document.createElement("img");
+      imgElement.src = movie.poster;
+      imgElement.alt = `Pôster de ${movie.title}`;
+  
+      const linkElement = document.createElement("a");
+      linkElement.href = movieLink;
+      linkElement.target = "_blank";
+      linkElement.appendChild(imgElement);
+  
+      const movieCell = row.querySelector(".movie");
+      if (movieCell) {
+        movieCell.innerHTML = "";
+        movieCell.appendChild(linkElement);
+  
+        // Recria o <p> para o título
+        const titleElement = document.createElement("p");
+        titleElement.textContent = movie.title;
+        movieCell.appendChild(titleElement);
+      }
+  
+      row.querySelector(".approval").textContent = movie.vote_average.toFixed(1);
       row.querySelector(".release").textContent = movie.release_date;
-
+  
       row.querySelector(".remove").onclick = () => {
         const isOk = confirm("Tem certeza que deseja deletar esse filme?");
         if (isOk) {
           this.delete(movie);
         }
       };
-
+  
       this.tbody.append(row);
     });
   }
+  
+  
+  
 
   createRow() {
     const tr = document.createElement("tr");
-
+  
     tr.innerHTML = `
       <td class="movie">
         <img src="" alt="">
@@ -98,6 +125,7 @@ export class FavoritesView extends Favorites {
     `;
     return tr;
   }
+  
 
   removeAllTr() {
     this.tbody.querySelectorAll("tr").forEach(tr => {

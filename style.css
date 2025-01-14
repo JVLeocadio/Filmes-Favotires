@@ -136,31 +136,31 @@ table td {
     
 }
 
-td.user{
+td.movie{
     display: flex;
     align-items: center;
     gap: 1rem;
 }
 
-td.user img {
-    width: 5rem;
-    height: 5rem;
+td.movie img {
+    width: 6rem;
+    height: 6rem;
     object-fit: cover;
-    border-radius: 50%;
+    border-radius: 60%;
     cursor: pointer; 
     transition: transform 0.3s ease, color 0.3s ease; 
 }
  
-.user img:hover{
+.movie img:hover{
     transform: scale(1.2);
 }
 
-td.user a {
+td.movie a {
     text-decoration: none;
 
 }
 
-td.user a p {
+td.movie a p {
     font-weight: bold;
 }
 
@@ -178,6 +178,6 @@ td.user a p {
     color: darkred; 
 }
 
-.repositories,.followers {
+.approval,.release {
     text-align: center;
 }
